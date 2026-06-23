@@ -47,3 +47,23 @@ compare to discretionary portfolio construction.
 Separately applied a simplified version of this 
 optimization framework in a statewide investing 
 competition (~1,600 participants).
+
+## College Admissions Calculator
+
+`CollegeAdmissions.ipynb` is a standalone notebook, inspired by 
+admissions-consulting products like John Morganelli's "BluePrint" 
+(Ivy Tutors Network). It has two parts:
+
+- **Chance Calculator** — estimates admission probability across a 
+  list of colleges from a student's GPA, test scores, course rigor, 
+  extracurricular strength, and hooks (legacy, first-gen, recruited 
+  athlete), sorting schools into Reach / Target / Likely / Safety.
+- **BluePrint-style Report Generator** — takes an intake questionnaire 
+  (interests, background, goals, grade level) and produces a 
+  personalized report: application theme, suggested majors, activities, 
+  project ideas, summer programs, essay prompts, a financial-aid 
+  overview, and a year-by-year timeline.
+
+College stats are illustrative approximations of public Common Data 
+Set figures, not live data — refresh `COLLEGE_DB` before relying on it 
+for real decisions.
