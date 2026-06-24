@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>College Admissions Calculator</title>
+<style>
+  :root {
+    --navy: #0f2942;
+    --teal: #1b7a78;
+    --reach: #c0392b;
+    --target: #d68910;
+    --likely: #2471a3;
+    --safety: #1e8449;
+    --bg: #f4f6f8;
+    --card: #ffffff;
+    --border: #dfe3e8;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background: var(--bg);
+    color: #1c2733;
+    line-height: 1.5;
+  }
+  header {
+    background: var(--navy);
+    color: white;
+    padding: 2rem 1.5rem;
+    text-align: center;
+  }
+  header h1 { margin: 0 0 0.5rem; font-size: 1.8rem; }
+  header p { margin: 0.25rem 0; opacity: 0.85; max-width: 700px; margin-inline: auto; font-size: 0.95rem; }
+  main {
+    max-width: 880px;
+    margin: -1.5rem auto 3rem;
+    padding: 0 1rem;
+  }
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 1.5rem;
+    margin-bottom: 1.25rem;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+  }
+  .card h2 {
+    margin-top: 0;
+    font-size: 1.15rem;
+    color: var(--navy);
+    border-bottom: 2px solid var(--border);
+    padding-bottom: 0.5rem;
+  }
+  label { display: block; font-weight: 600; font-size: 0.85rem; margin-bottom: 0.3rem; margin-top: 0.9rem; }
+  label:first-of-type { margin-top: 0; }
+  input[type=text], input[type=number], select, textarea {
+    width: 100%;
+    padding: 0.5rem 0.6rem;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    font-size: 0.95rem;
+    font-family: inherit;
+  }
+  textarea { resize: vertical; min-height: 60px; }
+  .row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+  @media (max-width: 600px) { .row { grid-template-columns: 1fr; } }
+  .range-row { display: flex; align-items: center; gap: 0.75rem; }
+  .range-row input[type=range] { flex: 1; }
+  .range-row span { width: 1.5rem; text-align: right; font-weight: 600; }
+  .hint { font-size: 0.78rem; color: #6b7785; margin-top: 0.2rem; }
+  fieldset { border: 1px solid var(--border); border-radius: 6px; margin-top: 0.9rem; padding: 0.75rem; }
+  fieldset legend { font-weight: 600; font-size: 0.85rem; padding: 0 0.3rem; }
+  .check-grid { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+  .check-grid label {
+    display: flex; align-items: center; gap: 0.4rem;
+    font-weight: 400; margin: 0;
+    border: 1px solid var(--border); border-radius: 20px;
+    padding: 0.35rem 0.7rem; font-size: 0.82rem; cursor: pointer;
+  }
+  .check-grid input { margin: 0; }
+  button {
+    background: var(--teal);
+    color: white;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    margin-top: 1.25rem;
+  }
+  button:hover { background: #145f5d; }
+  table { width: 100%; border-collapse: collapse; font-size: 0.88rem; }
+  th, td { text-align: left; padding: 0.5rem 0.4rem; border-bottom: 1px solid var(--border); }
+  th { color: #6b7785; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.03em; }
+  .badge {
+    display: inline-block; padding: 0.15rem 0.6rem; border-radius: 12px;
+    font-size: 0.78rem; font-weight: 600; color: white;
+  }
+  .badge.Reach { background: var(--reach); }
+  .badge.Target { background: var(--target); }
+  .badge.Likely { background: var(--likely); }
+  .badge.Safety { background: var(--safety); }
+  .report h3 { color: var(--teal); font-size: 1rem; margin-bottom: 0.4rem; }
+  .report ul { margin-top: 0.2rem; }
+  .report p { margin-top: 0.2rem; }
+  .disclaimer {
+    font-size: 0.78rem; color: #6b7785; background: #fbf3e0;
+    border: 1px solid #f0dca0; border-radius: 6px; padding: 0.75rem; margin-top: 1rem;
+  }
+  #results { display: none; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>College Admissions Calculator</h1>
+  <p>Two tools in one: a statistical admission-chance calculator, and a personalized
+  "BluePrint"-style report &mdash; inspired by the kind of intake-to-narrative product
+  former admissions deans (e.g. John Morganelli's BluePrint at Ivy Tutors Network) sell.</p>
+</header>
+
+<main>
+
+  <form id="student-form">
+    <div class="card">
+      <h2>Academic Profile</h2>
+      <div class="row">
+        <div>
+          <label for="name">Name</label>
+          <input type="text" id="name" placeholder="Jordan">
+        </div>
+        <div>
+          <label for="grade">Current grade level</label>
+          <select id="grade">
+            <option value="9">9th</option>
+            <option value="10">10th</option>
+            <option value="11" selected>11th</option>
+            <option value="12">12th</option>
+          </select>
+        </div>
+      </div>
+      <div class="row">
+        <div>
+          <label for="gpa">Unweighted GPA (4.0 scale)</label>
+          <input type="number" id="gpa" min="0" max="4.0" step="0.01" value="3.85">
+        </div>
+        <div>
+          <label for="test-type">Test score</label>
+          <div class="row" style="grid-template-columns: 90px 1fr;">
+            <select id="test-type">
+              <option value="sat" selected>SAT</option>
+              <option value="act">ACT</option>
+            </select>
+            <input type="number" id="test-score" value="1430">
+          </div>
+        </div>
+      </div>
+      <label for="rigor">Course rigor <span class="hint">(1 = mostly standard, 7 = typical college-prep, 10 = maxed-out AP/IB)</span></label>
+      <div class="range-row">
+        <input type="range" id="rigor" min="1" max="10" value="8">
+        <span id="rigor-val">8</span>
+      </div>
+      <label for="ec">Extracurricular strength <span class="hint">(1 = minimal, 5 = solid, 10 = national-level)</span></label>
+      <div class="range-row">
+        <input type="range" id="ec" min="1" max="10" value="7">
+        <span id="ec-val">7</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Hooks</h2>
+      <div class="check-grid">
+        <label><input type="checkbox" value="legacy"> Legacy</label>
+        <label><input type="checkbox" value="first_gen"> First-generation</label>
+        <label><input type="checkbox" value="recruited_athlete"> Recruited athlete</label>
+        <label><input type="checkbox" value="geographic_diversity"> Geographic diversity</label>
+        <label><input type="checkbox" value="demonstrated_interest"> Strong demonstrated interest</label>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Interests &amp; Goals</h2>
+      <label for="interest">Primary interest area</label>
+      <select id="interest">
+        <option value="stem_engineering">STEM / Engineering</option>
+        <option value="computer_science" selected>Computer Science</option>
+        <option value="business_economics">Business / Economics</option>
+        <option value="biology_premed">Biology / Pre-Med</option>
+        <option value="humanities_english">Humanities / English</option>
+        <option value="social_sciences_government">Social Sciences / Government</option>
+        <option value="arts_design">Arts / Design</option>
+        <option value="undecided">Undecided</option>
+      </select>
+      <label for="story">Background story <span class="hint">(a sentence or two &mdash; what shaped this interest?)</span></label>
+      <textarea id="story">Grew up fixing family members' computers and got hooked on how things work under the hood.</textarea>
+      <label for="goals">Goals <span class="hint">(what do you want to do with this interest?)</span></label>
+      <textarea id="goals">Build software that makes technical tools accessible to people without a CS background.</textarea>
+    </div>
+
+    <div class="card">
+      <h2>Target Schools <span class="hint">(used for the financial-aid overview &mdash; optional)</span></h2>
+      <div class="check-grid" id="school-checks"></div>
+    </div>
+
+    <button type="submit">Generate Report</button>
+  </form>
+
+  <div id="results">
+    <div class="card">
+      <h2>Admission Chances</h2>
+      <table>
+        <thead>
+          <tr><th>School</th><th>Est. Chance</th><th>Tier</th><th>Base Rate</th></tr>
+        </thead>
+        <tbody id="chances-body"></tbody>
+      </table>
+    </div>
+
+    <div class="card report" id="blueprint-report"></div>
+  </div>
+
+  <div class="disclaimer">
+    <strong>Disclaimer:</strong> College stats (acceptance rate, SAT/ACT/GPA ranges) are
+    rough, illustrative approximations of recently published Common Data Set figures &mdash;
+    not live data. This gives a statistical estimate, not a guarantee, and does not use
+    race as a factor, consistent with current U.S. admissions law.
+  </div>
+
+</main>
+
+<script>
+// ---------- Data ----------
+const ACT_TO_SAT = {
+  36: 1590, 35: 1560, 34: 1530, 33: 1500, 32: 1470, 31: 1440, 30: 1420,
+  29: 1390, 28: 1360, 27: 1330, 26: 1300, 25: 1270, 24: 1240, 23: 1210,
+  22: 1180, 21: 1150, 20: 1110, 19: 1070, 18: 1030, 17: 990, 16: 950,
+  15: 910, 14: 860, 13: 800, 12: 760, 11: 710, 10: 670,
+};
+
+const HOOK_BONUS_LOGIT = {
+  legacy: 0.4,
+  first_gen: 0.25,
+  recruited_athlete: 1.8,
+  geographic_diversity: 0.2,
+  demonstrated_interest: 0.1,
+};
+
+const ACADEMIC_INDEX_WEIGHT_TEST = 0.6;
+const ACADEMIC_INDEX_WEIGHT_GPA = 0.4;
+const SENSITIVITY_K = 1.3;
+const GPA_STD = 0.25;
+
+// Illustrative, approximate Common Data Set-style figures. Replace with current
+// data for real use. acceptance_rate is overall (not need-blind-adjusted).
+const COLLEGE_DB = [
+  {name: "Harvard University", acceptance_rate: 0.034, sat_25: 1500, sat_75: 1580, act_25: 34, act_75: 36, avg_gpa: 4.00, need_blind: true, pct_need_met: 100},
+  {name: "Stanford University", acceptance_rate: 0.037, sat_25: 1500, sat_75: 1570, act_25: 33, act_75: 35, avg_gpa: 4.00, need_blind: true, pct_need_met: 100},
+  {name: "MIT", acceptance_rate: 0.040, sat_25: 1520, sat_75: 1580, act_25: 35, act_75: 36, avg_gpa: 4.00, need_blind: true, pct_need_met: 100},
+  {name: "Princeton University", acceptance_rate: 0.039, sat_25: 1500, sat_75: 1580, act_25: 34, act_75: 36, avg_gpa: 3.95, need_blind: true, pct_need_met: 100},
+  {name: "Yale University", acceptance_rate: 0.046, sat_25: 1500, sat_75: 1580, act_25: 33, act_75: 35, avg_gpa: 4.00, need_blind: true, pct_need_met: 100},
+  {name: "Columbia University", acceptance_rate: 0.039, sat_25: 1500, sat_75: 1570, act_25: 34, act_75: 35, avg_gpa: 3.95, need_blind: true, pct_need_met: 100},
+  {name: "University of Pennsylvania", acceptance_rate: 0.059, sat_25: 1500, sat_75: 1570, act_25: 34, act_75: 35, avg_gpa: 3.90, need_blind: true, pct_need_met: 100},
+  {name: "Cornell University", acceptance_rate: 0.075, sat_25: 1460, sat_75: 1550, act_25: 33, act_75: 35, avg_gpa: 3.90, need_blind: true, pct_need_met: 100},
+  {name: "Brown University", acceptance_rate: 0.051, sat_25: 1500, sat_75: 1570, act_25: 33, act_75: 35, avg_gpa: 3.95, need_blind: true, pct_need_met: 100},
+  {name: "Dartmouth College", acceptance_rate: 0.062, sat_25: 1480, sat_75: 1560, act_25: 32, act_75: 35, avg_gpa: 3.90, need_blind: true, pct_need_met: 100},
+  {name: "Duke University", acceptance_rate: 0.060, sat_25: 1490, sat_75: 1570, act_25: 34, act_75: 35, avg_gpa: 3.90, need_blind: true, pct_need_met: 100},
+  {name: "Northwestern University", acceptance_rate: 0.072, sat_25: 1470, sat_75: 1550, act_25: 33, act_75: 35, avg_gpa: 3.90, need_blind: true, pct_need_met: 100},
+  {name: "Johns Hopkins University", acceptance_rate: 0.070, sat_25: 1500, sat_75: 1560, act_25: 34, act_75: 35, avg_gpa: 3.92, need_blind: true, pct_need_met: 100},
+  {name: "University of Chicago", acceptance_rate: 0.054, sat_25: 1500, sat_75: 1570, act_25: 34, act_75: 35, avg_gpa: 3.90, need_blind: true, pct_need_met: 100},
+  {name: "Vanderbilt University", acceptance_rate: 0.056, sat_25: 1500, sat_75: 1570, act_25: 34, act_75: 35, avg_gpa: 3.85, need_blind: true, pct_need_met: 100},
+  {name: "Rice University", acceptance_rate: 0.089, sat_25: 1500, sat_75: 1570, act_25: 33, act_75: 35, avg_gpa: 3.95, need_blind: true, pct_need_met: 100},
+  {name: "University of Notre Dame", acceptance_rate: 0.129, sat_25: 1440, sat_75: 1530, act_25: 33, act_75: 35, avg_gpa: 3.90, need_blind: true, pct_need_met: 95},
+  {name: "Georgetown University", acceptance_rate: 0.120, sat_25: 1440, sat_75: 1540, act_25: 32, act_75: 34, avg_gpa: 3.90, need_blind: false, pct_need_met: 90},
+  {name: "University of Michigan", acceptance_rate: 0.177, sat_25: 1350, sat_75: 1530, act_25: 31, act_75: 34, avg_gpa: 3.85, need_blind: false, pct_need_met: 85},
+  {name: "University of Virginia", acceptance_rate: 0.187, sat_25: 1370, sat_75: 1530, act_25: 31, act_75: 34, avg_gpa: 3.95, need_blind: false, pct_need_met: 80},
+  {name: "UC Berkeley", acceptance_rate: 0.116, sat_25: 1330, sat_75: 1530, act_25: 30, act_75: 35, avg_gpa: 3.90, need_blind: false, pct_need_met: 75},
+  {name: "UCLA", acceptance_rate: 0.086, sat_25: 1310, sat_75: 1530, act_25: 29, act_75: 34, avg_gpa: 3.95, need_blind: false, pct_need_met: 75},
+  {name: "New York University", acceptance_rate: 0.128, sat_25: 1430, sat_75: 1550, act_25: 32, act_75: 34, avg_gpa: 3.70, need_blind: false, pct_need_met: 70},
+  {name: "Boston University", acceptance_rate: 0.140, sat_25: 1410, sat_75: 1520, act_25: 31, act_75: 34, avg_gpa: 3.70, need_blind: false, pct_need_met: 70},
+  {name: "The Ohio State University", acceptance_rate: 0.530, sat_25: 1240, sat_75: 1450, act_25: 27, act_75: 32, avg_gpa: 3.70, need_blind: false, pct_need_met: 60},
+  {name: "Penn State University", acceptance_rate: 0.550, sat_25: 1180, sat_75: 1390, act_25: 25, act_75: 31, avg_gpa: 3.60, need_blind: false, pct_need_met: 55},
+  {name: "Arizona State University", acceptance_rate: 0.900, sat_25: 1110, sat_75: 1370, act_25: 21, act_75: 29, avg_gpa: 3.50, need_blind: false, pct_need_met: 50},
+  {name: "University of Alabama", acceptance_rate: 0.800, sat_25: 1100, sat_75: 1340, act_25: 23, act_75: 31, avg_gpa: 3.60, need_blind: false, pct_need_met: 45},
+];
+
+const INTEREST_BANK = {
+  stem_engineering: {
+    label: "STEM / Engineering",
+    majors: ["Mechanical Engineering", "Electrical Engineering", "Materials Science"],
+    activities: ["FIRST Robotics or a robotics club", "Science Olympiad", "Math team"],
+    project_ideas: [
+      "Design and document a robotics or hardware project with a public writeup",
+      "Enter a regional science fair or research competition",
+    ],
+    summer_programs: ["RSI", "MIT MITES/MOSTEC", "a university engineering pre-college program"],
+    essay_prompts: [
+      "A time you took apart, fixed, or built something and what it taught you",
+      "A problem in your community you'd want to solve with engineering",
+    ],
+  },
+  computer_science: {
+    label: "Computer Science",
+    majors: ["Computer Science", "Data Science", "Computer Engineering"],
+    activities: ["Coding club or competitive programming (USACO)", "Hackathons", "Open-source contributions"],
+    project_ideas: [
+      "Ship a real app or tool used by other students and document the build",
+      "Contribute to an open-source project and track your pull requests",
+    ],
+    summer_programs: ["a CS research REU", "a competitive coding camp", "a university CS pre-college program"],
+    essay_prompts: [
+      "A bug or failure that taught you more than a success did",
+      "Something you built because the tool you needed didn't exist",
+    ],
+  },
+  business_economics: {
+    label: "Business / Economics",
+    majors: ["Economics", "Business Administration", "Finance"],
+    activities: ["DECA or FBLA", "Investing/finance club", "A small student-run business"],
+    project_ideas: [
+      "Start a small business or freelance service and track real numbers",
+      "Run an independent research project analyzing a local market or industry",
+    ],
+    summer_programs: ["a pre-college business program", "an investing or trading competition", "a local internship at a small business"],
+    essay_prompts: [
+      "A decision involving money or risk you got wrong, and what changed after",
+      "A local economic problem you noticed and how you'd fix it",
+    ],
+  },
+  biology_premed: {
+    label: "Biology / Pre-Med",
+    majors: ["Biology", "Neuroscience", "Public Health"],
+    activities: ["HOSA", "Hospital or clinic volunteering", "Lab research with a local university"],
+    project_ideas: [
+      "Independent research project with a faculty mentor, written up formally",
+      "A public health awareness campaign for your school or town",
+    ],
+    summer_programs: ["a university pre-med/research program", "a hospital shadowing program", "an REU in biology"],
+    essay_prompts: [
+      "A moment that shaped how you think about health, illness, or care",
+      "A scientific question you can't stop thinking about",
+    ],
+  },
+  humanities_english: {
+    label: "Humanities / English",
+    majors: ["English", "Comparative Literature", "Philosophy"],
+    activities: ["Literary magazine or school newspaper", "Debate team", "Model UN"],
+    project_ideas: [
+      "Self-publish a collection of writing (blog, zine, or chapbook)",
+      "Run an independent research project on a text or author you love",
+    ],
+    summer_programs: ["a creative writing pre-college program", "a journalism workshop", "a humanities research program"],
+    essay_prompts: [
+      "A book or idea that changed how you see the world",
+      "A piece of writing you're proud of and why it mattered to you",
+    ],
+  },
+  social_sciences_government: {
+    label: "Social Sciences / Government",
+    majors: ["Political Science", "International Relations", "Sociology"],
+    activities: ["Model UN", "Student government", "Local political campaign volunteering"],
+    project_ideas: [
+      "An independent policy research paper on a local or national issue",
+      "Organize a civic engagement event (voter registration, town hall, etc.)",
+    ],
+    summer_programs: ["a pre-college government/policy program", "a congressional internship", "a Model UN summer institute"],
+    essay_prompts: [
+      "A local issue you'd want to change and what you've already done about it",
+      "A moment you disagreed with authority and how you handled it",
+    ],
+  },
+  arts_design: {
+    label: "Arts / Design",
+    majors: ["Studio Art", "Architecture", "Graphic/Industrial Design"],
+    activities: ["Art club or portfolio class", "Theater or stage design", "Freelance design work"],
+    project_ideas: [
+      "Build a public portfolio website showcasing a cohesive body of work",
+      "A community mural, exhibit, or design commission",
+    ],
+    summer_programs: ["a pre-college art/design program (RISD, Parsons, etc.)", "a portfolio-building workshop"],
+    essay_prompts: [
+      "A piece you made that didn't turn out as planned, and what you learned",
+      "The first time you realized you wanted to make things for a living",
+    ],
+  },
+  undecided: {
+    label: "Undecided",
+    majors: ["Undeclared / Liberal Arts", "Interdisciplinary Studies"],
+    activities: ["Two or three clubs explored deeply rather than many shallowly", "A job or internship outside school"],
+    project_ideas: ["An independent project that combines two unrelated interests"],
+    summer_programs: ["a broad pre-college exploratory program", "a local internship"],
+    essay_prompts: ["A time your interests collided in an unexpected way"],
+  },
+};
+
+const TIMELINE = {
+  9: [
+    "Take the most rigorous courses you can handle; grades start counting now.",
+    "Try 2-3 extracurriculars to find what sticks; depth beats breadth later.",
+    "Start a simple resume/activity log so you don't forget details later.",
+  ],
+  10: [
+    "Take the PSAT; identify a baseline SAT/ACT score and a study plan.",
+    "Narrow extracurriculars to 1-3 you can go deep on through senior year.",
+    "Start an independent project tied to your main interest area.",
+    "Begin a casual college list (20-30 schools) based on fit, not just rank.",
+  ],
+  11: [
+    "Take the SAT/ACT (and retake if needed); aim to finish testing by spring.",
+    "Take 2+ AP/IB/honors courses in your strongest subjects.",
+    "Deepen your signature project or activity into something show-able.",
+    "Request letters of recommendation from junior-year teachers in the spring.",
+    "Visit campuses or attend virtual info sessions; narrow your list to 8-15 schools.",
+    "Draft your Common App personal statement over the summer.",
+  ],
+  12: [
+    "Finalize your college list across reach/target/likely/safety tiers.",
+    "Complete the Common App, supplements, and essays well before deadlines.",
+    "File the FAFSA (opens Oct 1) and CSS Profile if required by your schools.",
+    "Submit early action/decision applications by November, regular by January.",
+    "Compare financial aid offers in the spring before committing by May 1.",
+  ],
+};
+
+// ---------- Calculator logic ----------
+function actToSat(act) {
+  act = Math.max(Math.min(Math.round(act), 36), 10);
+  return ACT_TO_SAT[act];
+}
+
+function percentileRangeToZscore(value, p25, p75) {
+  const mean = (p25 + p75) / 2;
+  const std = (p75 - p25) / 1.349; // distance between the 25th/75th percentiles of a normal curve
+  return (value - mean) / std;
+}
+
+function academicIndexZ(student, school) {
+  const satEquivalent = student.testType === "act" ? actToSat(student.testScore) : student.testScore;
+  const testZ = percentileRangeToZscore(satEquivalent, school.sat_25, school.sat_75);
+  const gpaZ = (student.gpa - school.avg_gpa) / GPA_STD;
+
+  const rigorAdj = (student.courseRigor - 7) * 0.1;
+  const ecAdj = (student.ecStrength - 5) * 0.15;
+
+  return ACADEMIC_INDEX_WEIGHT_TEST * testZ + ACADEMIC_INDEX_WEIGHT_GPA * gpaZ + rigorAdj + ecAdj;
+}
+
+function hookBonus(student) {
+  return student.hooks.reduce((sum, h) => sum + (HOOK_BONUS_LOGIT[h] || 0), 0);
+}
+
+function estimateAdmissionProbability(student, school) {
+  const baseRate = Math.min(Math.max(school.acceptance_rate, 0.001), 0.999);
+  const baseLogit = Math.log(baseRate / (1 - baseRate));
+
+  const z = academicIndexZ(student, school);
+  const logit = baseLogit + SENSITIVITY_K * z + hookBonus(student);
+
+  const probability = 1 / (1 + Math.exp(-logit));
+  return Math.min(Math.max(probability, 0.01), 0.98);
+}
+
+function classifyTier(probability) {
+  if (probability < 0.15) return "Reach";
+  if (probability < 0.40) return "Target";
+  if (probability < 0.70) return "Likely";
+  return "Safety";
+}
+
+function runChances(student) {
+  return COLLEGE_DB
+    .map((school) => ({
+      school: school.name,
+      estimated_chance: estimateAdmissionProbability(student, school),
+      tier: classifyTier(estimateAdmissionProbability(student, school)),
+      school_accept_rate: school.acceptance_rate,
+    }))
+    .sort((a, b) => a.estimated_chance - b.estimated_chance);
+}
+
+function generateBlueprintReportHTML(student) {
+  const bank = INTEREST_BANK[student.interestArea] || INTEREST_BANK.undecided;
+  const grade = student.gradeLevel;
+  const name = student.name || "Student";
+
+  const listItems = (arr) => arr.map((i) => `<li>${i}</li>`).join("");
+
+  let html = `<h2>BluePrint Report &mdash; ${name} (Grade ${grade})</h2>`;
+
+  html += `<h3>Application Theme</h3><p>${name}'s application centers on
+    <strong>${bank.label}</strong>, grounded in: &ldquo;${student.story || "a personal story still being shaped"}&rdquo;
+    and aimed at: &ldquo;${student.goals || "a goal still being defined"}&rdquo;.</p>`;
+
+  html += `<h3>Suggested Majors</h3><ul>${listItems(bank.majors)}</ul>`;
+  html += `<h3>Recommended Activities</h3><ul>${listItems(bank.activities)}</ul>`;
+  html += `<h3>Independent Project Ideas</h3><ul>${listItems(bank.project_ideas)}</ul>`;
+  html += `<h3>Summer Program Ideas</h3><ul>${listItems(bank.summer_programs)}</ul>`;
+  html += `<h3>College Essay Brainstorm Prompts</h3><ul>${listItems(bank.essay_prompts)}</ul>`;
+
+  html += `<h3>Financial Aid Overview</h3><p>File the FAFSA as soon as it opens (Oct 1)
+    and the CSS Profile for any school that requires it. Need-blind schools admit without
+    considering ability to pay; "meets full need" schools cover the gap between aid and
+    cost. Always run each school's net price calculator before assuming cost based on the
+    sticker price.</p>`;
+
+  if (student.targetSchools.length > 0) {
+    const byName = Object.fromEntries(COLLEGE_DB.map((s) => [s.name, s]));
+    const rows = student.targetSchools
+      .filter((n) => byName[n])
+      .map((n) => {
+        const s = byName[n];
+        const posture = s.need_blind ? "need-blind" : "need-aware";
+        return `<li><strong>${n}</strong>: ${posture}, meets ~${s.pct_need_met}% of demonstrated need</li>`;
+      })
+      .join("");
+    html += `<p><strong>Aid posture of your target schools:</strong></p><ul>${rows}</ul>`;
+  }
+
+  html += `<h3>Timeline</h3>`;
+  for (let g = grade; g <= 12; g++) {
+    html += `<p><strong>Grade ${g}:</strong></p><ul>${listItems(TIMELINE[g] || [])}</ul>`;
+  }
+
+  return html;
+}
+
+// ---------- UI wiring ----------
+document.getElementById("rigor").addEventListener("input", (e) => {
+  document.getElementById("rigor-val").textContent = e.target.value;
+});
+document.getElementById("ec").addEventListener("input", (e) => {
+  document.getElementById("ec-val").textContent = e.target.value;
+});
+
+const schoolChecksContainer = document.getElementById("school-checks");
+COLLEGE_DB.forEach((school) => {
+  const label = document.createElement("label");
+  const checkbox = document.createElement("input");
+  checkbox.type = "checkbox";
+  checkbox.value = school.name;
+  label.appendChild(checkbox);
+  label.appendChild(document.createTextNode(" " + school.name));
+  schoolChecksContainer.appendChild(label);
+});
+
+document.getElementById("student-form").addEventListener("submit", (e) => {
+  e.preventDefault();
+
+  const student = {
+    name: document.getElementById("name").value.trim(),
+    gradeLevel: parseInt(document.getElementById("grade").value, 10),
+    gpa: parseFloat(document.getElementById("gpa").value),
+    testType: document.getElementById("test-type").value,
+    testScore: parseFloat(document.getElementById("test-score").value),
+    courseRigor: parseInt(document.getElementById("rigor").value, 10),
+    ecStrength: parseInt(document.getElementById("ec").value, 10),
+    hooks: Array.from(document.querySelectorAll('#student-form .card:nth-of-type(2) input[type=checkbox]:checked')).map((c) => c.value),
+    interestArea: document.getElementById("interest").value,
+    story: document.getElementById("story").value.trim(),
+    goals: document.getElementById("goals").value.trim(),
+    targetSchools: Array.from(schoolChecksContainer.querySelectorAll('input[type=checkbox]:checked')).map((c) => c.value),
+  };
+
+  const chances = runChances(student);
+  const tbody = document.getElementById("chances-body");
+  tbody.innerHTML = chances
+    .map(
+      (r) => `<tr>
+        <td>${r.school}</td>
+        <td>${(r.estimated_chance * 100).toFixed(1)}%</td>
+        <td><span class="badge ${r.tier}">${r.tier}</span></td>
+        <td>${(r.school_accept_rate * 100).toFixed(1)}%</td>
+      </tr>`
+    )
+    .join("");
+
+  document.getElementById("blueprint-report").innerHTML = generateBlueprintReportHTML(student);
+
+  document.getElementById("results").style.display = "block";
+  document.getElementById("results").scrollIntoView({ behavior: "smooth" });
+});
+</script>
+
+</body>
+</html>
